@@ -50,6 +50,8 @@ s3cmd get --skip-existing s3://mybucket-123/* ./logs/
 ./flogparse.sh -F -i $DCID ./logs/*.gz
 </pre>
 
+## Help
+
 <pre>
 OPTIONS:
 -h      print help
