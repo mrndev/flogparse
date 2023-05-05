@@ -29,10 +29,11 @@ flogparse.sh ../logs/*.log.gz</b>
 
 **Example 2**: like above but replace the interface UUID with the name/identifier on the log filename (the s3 prefix)
 
-./flogparse.sh -F ApplicationLoadBalancer-1682967612.log.gz
-2023-05-01 19:08:49+0s: 78 bytes from 198.235.24.57:56658 to 212.227.224.120:137 (NETBIOS Name Service) over UDP rejected by ApplicationLoadBalancer
-2023-05-01 19:08:08+0s: 40 bytes from 95.214.55.85:36691 to 212.227.224.120:9091 over TCP rejected by ApplicationLoadBalancer
-
+<pre>
+./flogparse.sh -F <b>ApplicationLoadBalancer</b>-1682967612.log.gz
+2023-05-01 19:08:49+0s: 78 bytes from 198.235.24.57:56658 to 212.227.224.120:137 (NETBIOS Name Service) over UDP rejected by <b>ApplicationLoadBalancer</b>
+2023-05-01 19:08:08+0s: 40 bytes from 95.214.55.85:36691 to 212.227.224.120:9091 over TCP rejected by <b>ApplicationLoadBalancer</b>
+</pre>
 
 **Example 3**: Parse flow logs and resolve the interface UUID and IP address with data from the virtual data center (requires ionosctl)
 <pre>
@@ -48,10 +49,9 @@ You will need to have the s3cmd configure for your bucket
 s3cmd get --skip-existing s3://mybucket-123/* ./logs/
 ./flogparse.sh -F -i $DCID ./logs/*.gz
 </pre>
-you can also use the -F and -i <dcid> simultaneously
 
-
-## OPTIONS:
+<pre>
+OPTIONS:
 -i <id> Datacenter ID (same as --datacenter-id <id> with ionosctl). Used to
         get interface information with ionosctl to swap UUIDs and IP
         addresses to clear text names
@@ -70,8 +70,9 @@ you can also use the -F and -i <dcid> simultaneously
         the individual interfaces cannot be named so this may be a useful option.
 
 
-## ARGUMENTS:
+ARGUMENTS:
 *.log or *.log.gz files that conform to the log format 2
+</pre>
 
 ## DEPENDENCIES:
 - ionosctl (only if you use the -i option)
