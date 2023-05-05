@@ -52,6 +52,7 @@ s3cmd get --skip-existing s3://mybucket-123/* ./logs/
 
 <pre>
 OPTIONS:
+-h      print help
 -i <id> Datacenter ID (same as --datacenter-id <id> with ionosctl). Used to
         get interface information with ionosctl to swap UUIDs and IP
         addresses to clear text names
