@@ -59,7 +59,7 @@ NOTES:
         ./flogparse.*.awk < alb.1234523423.log
 
 DEPENDENCIES:
-        jq, ionosctl
+        jq, ionosctl (if -i option is used)
 "
 
 USE_FILENAME_ID=false
