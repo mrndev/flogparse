@@ -13,6 +13,7 @@ the parsed data will look somethin like this:
 
 
 OPTIONS:
+-h      print help
 -i      Datacenter ID (same as --datacenter-id with ionosctl). Used to
         get interface information with ionosctl to swap UUIDs and IP 
         addresses to clear text names. The data is stored in dcinfo.<dcid>.lib file.
