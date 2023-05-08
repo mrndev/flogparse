@@ -1,6 +1,6 @@
 # `flogparse` - a command line utility to parse flow logs
 `flogparse` is a shell script utility to parse cloud flow logs into more readable and self explanatory format. 
-The script optionally utilizes the ionosctl tool to fetch interface name information from 
+The script optionally utilizes the ionos APIs to fetch interface name information from 
 the virtual data center. 
 
 In short - this:
@@ -35,7 +35,7 @@ flogparse.sh ../logs/*.log.gz</b>
 2023-05-01 19:08:08+0s: 40 bytes from 95.214.55.85:36691 to 212.227.224.120:9091 over TCP rejected by <b>ApplicationLoadBalancer</b>
 </pre>
 
-**Example 3**: Parse flow logs and resolve the interface UUID and IP address with data from the virtual data center (requires ionosctl)
+**Example 3**: Parse flow logs and resolve the interface UUID and IP address with data from the virtual data center (requires IONOS_TOKEN env variable)
 <pre>
 <b>./flogparse.sh -i $DCID ./logs/*.log.gz </b>
 2023-04-27 00:11:15+0s: 311 bytes from 10.7.224.254:67 to <b>API2_Private_NIC</b>:68 (Bootstrap Protocol Client) over UDP accepted by <b>API2_Private_NIC</b>
@@ -53,33 +53,72 @@ s3cmd get --skip-existing s3://mybucket-123/* ./logs/
 ## Help
 
 <pre>
+
+
+This script parses the cloud flow logs into a more readable format by resolving
+protocol number and port number into clear text. If you give a data center id
+(UUID) with the '-i' option, the script will attempt to get clear text names
+for interfaces and IP addresses from the APIs. 
+
+the parsed data will look somethin like this:
+2023-04-27 12:03:14+0s: 120 bytes from 45.134.144.235:52876 to ApiLB:80 (World Wide Web HTTP) over TCP accepted by ApplicationLoadBalancer
+
+
 OPTIONS:
--h      print help
--i id   Datacenter ID (same as --datacenter-id <id> with ionosctl). Used to
-        get interface information with ionosctl to swap UUIDs and IP
-        addresses to clear text names
+-h      
+        print help
 
--c      Use the cached datacenter information (generated alwys with -i if -c not used). This
-        is the preferred method if you know that the datacenter information is not changing
+-i      <dcid>
+        Datacenter ID (UUID). Used to get interface information from the APIs
+        (swap UUIDs and IP addresses to clear text names). The data is stored
+        in dcinfo.<dcid>.lib file. use the '-c' parameter below to prevent
+        fetching the information on every call (makes the script faster).
+        Requires IONOS_TOKEN environment variable set.
 
--F      Use the device/interface identifier on the log file name instead of the
+-c      
+        Use the locally stored cache file dcinfo.<dcid>.lib instead of trying
+        to fetch the data from the APIs
+
+-F      
+        Use the device/interface identifier on the log file name instead of the
         UUID in the log records. See teh example above where the string
         ApplicationLoadBalancer from the filename is used as the interface
-        identifier in the listed log lines. The s3 prefix can be defined when setting
-        the flow log in the DCD or with ionosctl. Give for example
-        's3://mybucket/myprefix' instead of just 's3://mybucket' in the DCD or ionosctl.
-        Normally you would not need this if you give the interfaces (NICs) proper names
-        in the virtual data center. For certain components, such as the application load balancer
-        the individual interfaces cannot be named so this may be a useful option.
-
+        identifier in the listed log lines. The s3 prefix can be defined when
+        setting the flow log in the DCD or with ionosctl. Give for example
+        's3://mybucket/myprefix' instead of just 's3://mybucket'.
 
 ARGUMENTS:
-*.log or *.log.gz files that conform to the log format 2
-</pre>
+        *.log or *.log.gz files that conform to the log format 2
 
-## DEPENDENCIES:
-- ionosctl (only if you use the -i option)
-- jq (only if you use the -i)
+
+EXAMPLES:
+        parse all gzipped and clear text logs in the logs directory.
+        flogparse/flogparse.sh ./logs/*.log.gz ./logs/*.log
+
+        replace the interface UUID in the logs with the file prefix
+        flogparse/flogparse.sh -F myprefix.123345123345.log.gz
+
+        get data center information from the APIs and use it to replace UUIDs and IP
+        addresses with the interface names (requires IONOS_TOKEN environment variable)
+        flogparse/flogparse.sh -i $DCID ./logs/*.log.gz
+
+        # the same but use the cached data center information (faster)
+        flogparse/flogparse.sh -c -i $DCID ./logs/*.log.gz
+
+        # run without parameters to generate the flogparse.awk that can be used in pipes
+        flogparse/flogparse.sh
+        gunzip -c *.log.gz | flogparse.awk
+
+NOTES: 
+        the script will generate a self contained flogparse.*.awk script in the
+        same directory. The parselogs.qwk reads the logs from stdin and can be
+        used to parse logs in data pipes. Example:
+        ./flogparse.*.awk < alb.1234523423.log
+
+DEPENDENCIES:
+        jq (if -i option is used)
+
+</pre>
 
 ## Examples for configuring the flow logs and S3 tools
 Configure the s3cmd for fetching the log files
