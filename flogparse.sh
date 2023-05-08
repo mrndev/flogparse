@@ -6,29 +6,34 @@ HELP="
 This script parses the cloud flow logs into a more readable format by resolving
 protocol number and port number into clear text. If you give a data center id
 (UUID) with the '-i' option, the script will attempt to get clear text names
-for interfaces and IP addresses using the ionosctl command line tool. 
+for interfaces and IP addresses from the APIs. 
 
 the parsed data will look somethin like this:
 2023-04-27 12:03:14+0s: 120 bytes from 45.134.144.235:52876 to ApiLB:80 (World Wide Web HTTP) over TCP accepted by ApplicationLoadBalancer
 
 
 OPTIONS:
--h      print help
--i      Datacenter ID (same as --datacenter-id with ionosctl). Used to
-        get interface information with ionosctl to swap UUIDs and IP 
-        addresses to clear text names. The data is stored in dcinfo.<dcid>.lib file.
-        use the '-c' parameter below to prevent fetching the information on every call
-        (makes the script much faster)
+-h      
+        print help
 
--c      if you use the '-i' parameter, the script will will use the locally stored cache
-        file dcinfo.<dcid>.lib instead of trying to fetch the data with ionosctl. 
+-i      <dcid>
+        Datacenter ID (UUID). Used to get interface information from the APIs
+        (swap UUIDs and IP addresses to clear text names). The data is stored
+        in dcinfo.<dcid>.lib file. use the '-c' parameter below to prevent
+        fetching the information on every call (makes the script faster).
+        Requires IONOS_TOKEN environment variable set.
 
--F      Use the device/interface identifier on the log file name instead of the
+-c      
+        Use the locally stored cache file dcinfo.<dcid>.lib instead of trying
+        to fetch the data from the APIs
+
+-F      
+        Use the device/interface identifier on the log file name instead of the
         UUID in the log records. See teh example above where the string
         ApplicationLoadBalancer from the filename is used as the interface
-        identifier in the listed log lines. The s3 prefix can be defined when setting
-        the flow log in the DCD or with ionosctl. Give for example 
-        's3://mybucket/myprefix' instead of just 's3://mybucket' in the DCD or ionosctl.
+        identifier in the listed log lines. The s3 prefix can be defined when
+        setting the flow log in the DCD or with ionosctl. Give for example
+        's3://mybucket/myprefix' instead of just 's3://mybucket'.
 
 ARGUMENTS:
         *.log or *.log.gz files that conform to the log format 2
@@ -42,7 +47,7 @@ EXAMPLES:
         $0 -F myprefix.123345123345.log.gz
 
         get data center information from the APIs and use it to replace UUIDs and IP
-        addresses with the interface names (requires ionosctl)
+        addresses with the interface names (requires IONOS_TOKEN environment variable)
         $0 -i \$DCID ./logs/*.log.gz
 
         # the same but use the cached data center information (faster)
@@ -59,7 +64,7 @@ NOTES:
         ./flogparse.*.awk < alb.1234523423.log
 
 DEPENDENCIES:
-        jq, ionosctl (if -i option is used)
+        jq (if -i option is used)
 "
 
 USE_FILENAME_ID=false
@@ -107,14 +112,12 @@ if [ ! -e $DCINFO -a ! -z "$DCID" ]; then
         get_ips(){
                 jq -r '..|select(has("ips"))?|"hosts[\"\(.ips[0])\"]=\"\(.name|gsub(" ";"_"))\""' 
         }
-        ionosctl datacenter get --datacenter-id $DCID -o json --depth 10 | get_ids >> $DCINFO
-        ionosctl loadbalancer list --datacenter-id $DCID -o json --depth 10 | get_ids >> $DCINFO
-        ionosctl applicationloadbalancer list --datacenter-id $DCID -o json --depth 10 | get_ids >> $DCINFO
-        ionosctl natgateway list --datacenter-id $DCID -o json --depth 10 | get_ids >> $DCINFO
-        ionosctl datacenter get --datacenter-id $DCID -o json --depth 10 | get_ips >> $DCINFO
-        ionosctl loadbalancer list --datacenter-id $DCID -o json --depth 10 | get_ips >> $DCINFO
-        ionosctl applicationloadbalancer list --datacenter-id $DCID -o json --depth 10 | get_ips >> $DCINFO
-        ionosctl natgateway list --datacenter-id $DCID -o json --depth 10 | get_ips >> $DCINFO
+
+        curl --silent --header "Authorization: Bearer $IONOS_TOKEN" \
+                https://api.ionos.com/cloudapi/v6/datacenters/$DCINFO?depth=10 | get_ids >> $DCINFO
+
+        curl --silent --header "Authorization: Bearer $IONOS_TOKEN" \
+                https://api.ionos.com/cloudapi/v6/datacenters/$DCINFO?depth=10 | get_ips >> $DCINFO
 
         # add this machine to the hosts (comment out if undesired)
         MYIP=$(ip -o addr | grep 'ens.*inet\>'|tr '/' ' '|awk '{print $4}')
