@@ -16,7 +16,7 @@ OPTIONS:
 -h      
         print help
 
--i      <dcid>
+-i      dcid
         Datacenter ID (UUID). Used to get interface information from the APIs
         (swap UUIDs and IP addresses to clear text names). The data is stored
         in dcinfo.<dcid>.lib file. use the '-c' parameter below to prevent
@@ -114,10 +114,10 @@ if [ ! -e $DCINFO -a ! -z "$DCID" ]; then
         }
 
         curl --silent --header "Authorization: Bearer $IONOS_TOKEN" \
-                https://api.ionos.com/cloudapi/v6/datacenters/$DCINFO?depth=10 | get_ids >> $DCINFO
+                https://api.ionos.com/cloudapi/v6/datacenters/$DCID?depth=10 | get_ids >> $DCINFO
 
         curl --silent --header "Authorization: Bearer $IONOS_TOKEN" \
-                https://api.ionos.com/cloudapi/v6/datacenters/$DCINFO?depth=10 | get_ips >> $DCINFO
+                https://api.ionos.com/cloudapi/v6/datacenters/$DCID?depth=10 | get_ips >> $DCINFO
 
         # add this machine to the hosts (comment out if undesired)
         MYIP=$(ip -o addr | grep 'ens.*inet\>'|tr '/' ' '|awk '{print $4}')
