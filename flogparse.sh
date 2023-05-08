@@ -6690,7 +6690,7 @@ chmod +x $FLOGPARSE_AWK
 # text prefix
 replace_log_uuid_with_filename_identifier(){
         if $USE_FILENAME_ID; then
-                awk -v FILE=$(basename $F) '{gsub("-[0-9]+.log.gz","",FILE); $3=FILE; print $0}' 
+                awk -v FILE=$(basename $F) '{gsub("-[0-9]+.log(.gz)?","",FILE); $3=FILE; print $0}' 
         else
                 cat
         fi
