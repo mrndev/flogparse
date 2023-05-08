@@ -7,7 +7,7 @@ In short - this:
 
 `2 31931785 d8963239-e78b-4e18-8ee4-42b22dc83047 51.195.90.237 212.227.224.120 60890 22 6 1 60 1682968081 1682968081 REJECT OK`
 
-will be converted to somethign like this:
+will be converted to something like this:
 
 `2023-05-01 19:08:38+7s: 240 bytes from 139.59.27.154:20460 to ApiLB:22 (SSH Remote Login Protocol) over TCP rejected by ApplicationLoadBalancer`
 
@@ -55,7 +55,7 @@ s3cmd get --skip-existing s3://mybucket-123/* ./logs/
 <pre>
 OPTIONS:
 -h      print help
--i <id> Datacenter ID (same as --datacenter-id <id> with ionosctl). Used to
+-i id   Datacenter ID (same as --datacenter-id <id> with ionosctl). Used to
         get interface information with ionosctl to swap UUIDs and IP
         addresses to clear text names
 
